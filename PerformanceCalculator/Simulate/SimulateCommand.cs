@@ -72,19 +72,7 @@ namespace PerformanceCalculator.Simulate
 
             var categoryAttribs = new Dictionary<string, double>();
             double pp = ruleset.CreatePerformanceCalculator(workingBeatmap, scoreInfo).Calculate(categoryAttribs);
-
-            Console.WriteLine(workingBeatmap.BeatmapInfo.ToString());
-
-            WritePlayInfo(scoreInfo, beatmap);
-
-            WriteAttribute("Mods", mods.Length > 0
-                ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}")
-                : "None");
-
-            foreach (var kvp in categoryAttribs)
-                WriteAttribute(kvp.Key, kvp.Value.ToString(CultureInfo.InvariantCulture));
-
-            WriteAttribute("pp", pp.ToString(CultureInfo.InvariantCulture));
+            System.Console.WriteLine(pp);
         }
 
         private List<Mod> getMods(Ruleset ruleset)
