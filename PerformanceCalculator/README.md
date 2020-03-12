@@ -1,3 +1,9 @@
+# Custom changes
+
+To make the results of this tool more accessible and easier to parse, I adjusted the outputs:
+- difficulty calculation now simply return the star rating and nothing else
+- simulate calculation now simply returns the pp value and nothing else
+
 # Performance Calculator
 
 A tool for calculating the difficulty of beatmaps and the performance of replays.

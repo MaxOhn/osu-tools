@@ -4,18 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Linq;
-using Alba.CsConsoleFormat;
 using JetBrains.Annotations;
 using McMaster.Extensions.CommandLineUtils;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Catch.Difficulty;
-using osu.Game.Rulesets.Mania.Difficulty;
 using osu.Game.Rulesets.Mods;
-using osu.Game.Rulesets.Osu.Difficulty;
-using osu.Game.Rulesets.Taiko.Difficulty;
 
 namespace PerformanceCalculator.Difficulty
 {
@@ -40,65 +34,16 @@ namespace PerformanceCalculator.Difficulty
 
         public override void Execute()
         {
-            var result = processBeatmap(new ProcessorWorkingBeatmap(Path));
-            System.Console.WriteLine(result.Stars);
+            var stars = processBeatmap(new ProcessorWorkingBeatmap(Path));
+            System.Console.WriteLine(stars);
         }
 
-        private Result processBeatmap(WorkingBeatmap beatmap)
+        private double processBeatmap(WorkingBeatmap beatmap)
         {
-            // Get the ruleset
             var ruleset = LegacyHelper.GetRulesetFromLegacyID(Ruleset ?? beatmap.BeatmapInfo.RulesetID);
             var attributes = ruleset.CreateDifficultyCalculator(beatmap).Calculate(getMods(ruleset).ToArray());
 
-            var result = new Result
-            {
-                RulesetId = ruleset.RulesetInfo.ID ?? 0,
-                Beatmap = $"{beatmap.BeatmapInfo.OnlineBeatmapID} - {beatmap.BeatmapInfo}",
-                Stars = attributes.StarRating.ToString("N2")
-            };
-
-            switch (attributes)
-            {
-                case OsuDifficultyAttributes osu:
-                    result.AttributeData = new List<(string, object)>
-                    {
-                        ("aim rating", osu.AimStrain.ToString("N2")),
-                        ("speed rating", osu.SpeedStrain.ToString("N2")),
-                        ("max combo", osu.MaxCombo),
-                        ("approach rate", osu.ApproachRate.ToString("N2")),
-                        ("overall difficulty", osu.OverallDifficulty.ToString("N2"))
-                    };
-
-                    break;
-
-                case TaikoDifficultyAttributes taiko:
-                    result.AttributeData = new List<(string, object)>
-                    {
-                        ("hit window", taiko.GreatHitWindow.ToString("N2")),
-                        ("max combo", taiko.MaxCombo)
-                    };
-
-                    break;
-
-                case CatchDifficultyAttributes @catch:
-                    result.AttributeData = new List<(string, object)>
-                    {
-                        ("max combo", @catch.MaxCombo),
-                        ("approach rate", @catch.ApproachRate.ToString("N2"))
-                    };
-
-                    break;
-
-                case ManiaDifficultyAttributes mania:
-                    result.AttributeData = new List<(string, object)>
-                    {
-                        ("hit window", mania.GreatHitWindow.ToString("N2"))
-                    };
-
-                    break;
-            }
-
-            return result;
+            return attributes.StarRating;
         }
 
         private List<Mod> getMods(Ruleset ruleset)
@@ -111,7 +56,7 @@ namespace PerformanceCalculator.Difficulty
 
             foreach (var modString in Mods)
             {
-                Mod newMod = availableMods.FirstOrDefault(m => string.Equals(m.Acronym, modString, StringComparison.CurrentCultureIgnoreCase));
+                var newMod = availableMods.FirstOrDefault(m => string.Equals(m.Acronym, modString, StringComparison.CurrentCultureIgnoreCase));
                 if (newMod == null)
                     throw new ArgumentException($"Invalid mod provided: {modString}");
 
@@ -119,14 +64,6 @@ namespace PerformanceCalculator.Difficulty
             }
 
             return mods;
-        }
-
-        private struct Result
-        {
-            public int RulesetId;
-            public string Beatmap;
-            public string Stars;
-            public List<(string name, object value)> AttributeData;
         }
     }
 }
