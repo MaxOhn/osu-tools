@@ -40,51 +40,8 @@ namespace PerformanceCalculator.Difficulty
 
         public override void Execute()
         {
-            var results = new List<Result>();
-
-            if (Directory.Exists(Path))
-            {
-                foreach (string file in Directory.GetFiles(Path, "*.osu", SearchOption.AllDirectories))
-                {
-                    var beatmap = new ProcessorWorkingBeatmap(file);
-                    results.Add(processBeatmap(beatmap));
-                }
-            }
-            else
-                results.Add(processBeatmap(new ProcessorWorkingBeatmap(Path)));
-
-            var document = new Document();
-
-            foreach (var group in results.GroupBy(r => r.RulesetId))
-            {
-                var ruleset = LegacyHelper.GetRulesetFromLegacyID(group.First().RulesetId);
-
-                document.Children.Add(new Span($"Ruleset: {ruleset.ShortName}"), "\n");
-
-                var grid = new Grid();
-
-                grid.Columns.Add(GridLength.Auto, GridLength.Auto);
-                grid.Children.Add(new Cell("beatmap"), new Cell("star rating"));
-
-                foreach (var attribute in group.First().AttributeData)
-                {
-                    grid.Columns.Add(GridLength.Auto);
-                    grid.Children.Add(new Cell(attribute.name));
-                }
-
-                foreach (var result in group)
-                {
-                    grid.Children.Add(new Cell(result.Beatmap), new Cell(result.Stars) { Align = Align.Right });
-                    foreach (var attribute in result.AttributeData)
-                        grid.Children.Add(new Cell(attribute.value) { Align = Align.Right });
-                }
-
-                document.Children.Add(grid);
-
-                document.Children.Add("\n");
-            }
-
-            OutputDocument(document);
+            var result = processBeatmap(new ProcessorWorkingBeatmap(Path));
+            System.Console.WriteLine(result.Stars);
         }
 
         private Result processBeatmap(WorkingBeatmap beatmap)
