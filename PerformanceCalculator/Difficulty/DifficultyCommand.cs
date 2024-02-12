@@ -166,7 +166,7 @@ namespace PerformanceCalculator.Difficulty
             public List<Result> Results { get; set; } = new List<Result>();
         }
 
-        private class Result
+        private new class Result
         {
             [JsonProperty("ruleset_id")]
             public int RulesetId { get; set; }

@@ -40,6 +40,56 @@ namespace PerformanceCalculator
             Execute();
         }
 
+        public void OutputPerformances(List<Result> results)
+        {
+            if (OutputJson)
+            {
+                string json = JsonConvert.SerializeObject(results);
+
+                Console.WriteLine(json);
+
+                if (OutputFile != null)
+                    File.WriteAllText(OutputFile, json);
+            }
+            else
+            {
+                foreach (Result result in results)
+                {
+                    var document = new Document();
+
+                    AddSectionHeader(document, "Basic score info");
+
+                    document.Children.Add(
+                        FormatDocumentLine("beatmap", $"{result.Score.BeatmapId} - {result.Score.Beatmap}"),
+                        FormatDocumentLine("total score", result.Score.TotalScore.ToString(CultureInfo.InvariantCulture)),
+                        FormatDocumentLine("legacy total score", result.Score.LegacyTotalScore.ToString(CultureInfo.InvariantCulture)),
+                        FormatDocumentLine("accuracy", result.Score.Accuracy.ToString("N2", CultureInfo.InvariantCulture)),
+                        FormatDocumentLine("combo", result.Score.Combo.ToString(CultureInfo.InvariantCulture)),
+                        FormatDocumentLine("mods", result.Score.Mods.Count > 0 ? result.Score.Mods.Select(m => m.ToString()).Aggregate((c, n) => $"{c}, {n}") : "None")
+                    );
+
+                    AddSectionHeader(document, "Hit statistics");
+
+                    foreach (var stat in result.Score.Statistics)
+                        document.Children.Add(FormatDocumentLine(stat.Key.ToString().ToLowerInvariant(), stat.Value.ToString(CultureInfo.InvariantCulture)));
+
+                    AddSectionHeader(document, "Performance attributes");
+
+                    var ppAttributeValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(result.PerformanceAttributes)) ?? new Dictionary<string, object>();
+                    foreach (var attrib in ppAttributeValues)
+                        document.Children.Add(FormatDocumentLine(attrib.Key.Humanize().ToLower(), FormattableString.Invariant($"{attrib.Value:N2}")));
+
+                    AddSectionHeader(document, "Difficulty attributes");
+
+                    var diffAttributeValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(result.DifficultyAttributes)) ?? new Dictionary<string, object>();
+                    foreach (var attrib in diffAttributeValues)
+                        document.Children.Add(FormatDocumentLine(attrib.Key.Humanize(), FormattableString.Invariant($"{attrib.Value:N2}")));
+
+                    OutputDocument(document);
+                }
+            }
+        }
+
         public void OutputPerformance(ScoreInfo score, PerformanceAttributes performanceAttributes, DifficultyAttributes difficultyAttributes)
         {
             var result = new Result
@@ -140,7 +190,7 @@ namespace PerformanceCalculator
         {
         }
 
-        private class Result
+        public class Result
         {
             [JsonProperty("score")]
             public ScoreStatistics Score { get; set; }
@@ -155,7 +205,7 @@ namespace PerformanceCalculator
         /// <summary>
         /// A trimmed down score.
         /// </summary>
-        private class ScoreStatistics
+        public class ScoreStatistics
         {
             [JsonProperty("ruleset_id")]
             public int RulesetId { get; set; }

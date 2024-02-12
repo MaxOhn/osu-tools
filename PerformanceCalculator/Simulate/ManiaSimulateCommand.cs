@@ -10,6 +10,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Mania.Objects;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 
 namespace PerformanceCalculator.Simulate
@@ -43,8 +44,8 @@ namespace PerformanceCalculator.Simulate
         private int? greats { get; set; }
 
         [UsedImplicitly]
-        [Option(CommandOptionType.MultipleValue, Template = "-m|--mod <mod>", Description = "One for each mod. The mods to compute the performance with."
-                                                                                            + " Values: hr, dt, fl, 4k, 5k, etc...")]
+        [Option(CommandOptionType.MultipleValue, Template = "-m|--mod <mod>", Description = "The mods to compute the performance with."
+                                                                                            + " Values: hr, hdflez, hddt, etc...")]
         public override string[] Mods { get; }
 
         public override Ruleset Ruleset => new ManiaRuleset();
@@ -108,6 +109,17 @@ namespace PerformanceCalculator.Simulate
                 { HitResult.Meh, countMeh.Value },
                 { HitResult.Miss, countMiss }
             };
+        }
+        public override int? GetScore(Mod[] mods)
+        {
+            double scoreMultiplier = 1;
+
+            // Cap score depending on difficulty adjustment mods (matters for mania).
+            foreach (var mod in mods)
+                if (mod.Type == ModType.DifficultyReduction)
+                    scoreMultiplier *= mod.ScoreMultiplier;
+
+            return (int)Math.Round(1000000 * scoreMultiplier);
         }
     }
 }
