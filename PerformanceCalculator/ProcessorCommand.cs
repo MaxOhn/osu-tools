@@ -34,6 +34,10 @@ namespace PerformanceCalculator
         [Option(Template = "-j|--json", Description = "Output results as JSON.")]
         public bool OutputJson { get; }
 
+        [UsedImplicitly]
+        [Option(Template = "-pj|--pretty-json", Description = "Output results as pretty JSON.")]
+        public bool OutputPrettyJson { get; }
+
         public virtual void OnExecute(CommandLineApplication app, IConsole console)
         {
             Console = console;
@@ -42,7 +46,16 @@ namespace PerformanceCalculator
 
         public void OutputPerformances(List<Result> results)
         {
-            if (OutputJson)
+            if (OutputPrettyJson)
+            {
+                string json = JsonConvert.SerializeObject(results, Formatting.Indented);
+
+                Console.Write(json);
+
+                if (OutputFile != null)
+                    File.WriteAllText(OutputFile, json);
+            }
+            else if (OutputJson)
             {
                 string json = JsonConvert.SerializeObject(results);
 
