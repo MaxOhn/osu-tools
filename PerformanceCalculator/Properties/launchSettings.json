@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PerformanceCalculator": {
+      "commandName": "Project",
+      "commandLineArgs": "simulate mania \"F:/osu!/beatmaps/1901200.osu\""
+    }
+  }
+}
