@@ -54,8 +54,7 @@ namespace PerformanceCalculator.Simulate
 
         protected override Dictionary<HitResult, int> GenerateHitResults(double accuracy, IBeatmap beatmap, int countMiss, int? countMeh, int? countGood)
         {
-            // One judgement per normal note. Two judgements per hold note (head + tail).
-            var totalHits = beatmap.HitObjects.Count + beatmap.HitObjects.Count(ho => ho is HoldNote);
+            var totalHits = beatmap.HitObjects.Count;
 
             if (countMeh != null || oks != null || countGood != null || greats != null)
             {
@@ -81,10 +80,9 @@ namespace PerformanceCalculator.Simulate
             int delta = targetTotal - remainingHits;
 
             // Each great and perfect increases total by 5 (great-meh=5)
-            // There is no difference in accuracy between them, so just halve arbitrarily (favouring perfects for an odd number).
             int greatsAndPerfects = Math.Min(delta / 5, remainingHits);
-            greats = greatsAndPerfects / 2;
-            int perfects = greatsAndPerfects - greats.Value;
+            greats = 0;
+            int perfects = greatsAndPerfects;
             delta -= (greats.Value + perfects) * 5;
             remainingHits -= greats.Value + perfects;
 
