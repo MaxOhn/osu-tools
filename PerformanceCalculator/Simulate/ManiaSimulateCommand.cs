@@ -37,8 +37,12 @@ namespace PerformanceCalculator.Simulate
 
         protected override Dictionary<HitResult, int> GenerateHitResults(double accuracy, IBeatmap beatmap, int countMiss, int? countMeh, int? countGood)
         {
-            // One judgement per normal note. Two judgements per hold note (head + tail).
-            var totalHits = beatmap.HitObjects.Count + beatmap.HitObjects.Count(ho => ho is HoldNote);
+            // One judgement per normal note.
+            int totalHits = beatmap.HitObjects.Count;
+            
+            // Two judgements per hold note (head + tail).
+            if (Lazer)
+                totalHits += beatmap.HitObjects.Count(ho => ho is HoldNote);
 
             if (countMeh != null || oks != null || countGood != null || greats != null)
             {
