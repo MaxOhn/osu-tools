@@ -39,6 +39,10 @@ namespace PerformanceCalculator.Simulate
         [Option(Template = "-X|--misses <misses>", Description = "Number of misses. Defaults to 0.")]
         public int Misses { get; }
 
+        [UsedImplicitly]
+        [Option(CommandOptionType.NoValue, Template = "-l|--lazer", Description = "Uses lazer's calculation rather than stable's.")]
+        public bool Lazer { get; }
+
         //
         // Options implemented in the ruleset-specific commands
         // -> Catch renames Mehs/Goods to (tiny-)droplets
