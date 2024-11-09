@@ -137,8 +137,8 @@ namespace PerformanceCalculator.Simulate
             var countMeh = statistics[HitResult.Meh];
             var countMiss = statistics[HitResult.Miss];
 
-            double numerator = 6 * countGreat + 2 * countGood + countMeh;
-            double denominator = 6 * (countGreat + countGood + countMeh + countMiss);
+            int numerator = 300 * countGreat + 100 * countGood + 50 * countMeh;
+            int denominator = 300 * (countGreat + countGood + countMeh + countMiss);
 
             if (Lazer)
             {
@@ -147,11 +147,11 @@ namespace PerformanceCalculator.Simulate
                 var countLargeTicks = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat));
                 var countLargeTickHit = countLargeTicks - statistics[HitResult.LargeTickMiss];
 
-                numerator += 3 * countSliderTailHit + 0.6 * countLargeTickHit;
-                denominator += 3 * countSliders + 0.6 * countLargeTicks;
+                numerator += 150 * countSliderTailHit + 30 * countLargeTickHit;
+                denominator += 150 * countSliders + 30 * countLargeTicks;
             }
 
-            return numerator / denominator;
+            return (double)numerator / denominator;
         }
     }
 }
