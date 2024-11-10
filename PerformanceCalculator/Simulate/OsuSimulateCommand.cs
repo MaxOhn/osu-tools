@@ -124,6 +124,7 @@ namespace PerformanceCalculator.Simulate
                 { HitResult.Great, countGreat },
                 { HitResult.Ok, countGood ?? 0 },
                 { HitResult.Meh, countMeh ?? 0 },
+                { HitResult.LargeTickHit, beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat)) - largeTickMisses },
                 { HitResult.LargeTickMiss, largeTickMisses },
                 { HitResult.SliderTailHit, beatmap.HitObjects.Count(x => x is Slider) - sliderTailMisses },
                 { HitResult.Miss, countMiss }
@@ -145,7 +146,7 @@ namespace PerformanceCalculator.Simulate
                 var countSliders = beatmap.HitObjects.Count(x => x is Slider);
                 var countSliderTailHit = statistics[HitResult.SliderTailHit];
                 var countLargeTicks = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat));
-                var countLargeTickHit = countLargeTicks - statistics[HitResult.LargeTickMiss];
+                var countLargeTickHit = statistics[HitResult.LargeTickHit];
 
                 numerator += 150 * countSliderTailHit + 30 * countLargeTickHit;
                 denominator += 150 * countSliders + 30 * countLargeTicks;
