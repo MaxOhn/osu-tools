@@ -9,6 +9,7 @@ using McMaster.Extensions.CommandLineUtils;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Osu;
+using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Osu.Objects;
 using osu.Game.Rulesets.Scoring;
 
@@ -119,14 +120,34 @@ namespace PerformanceCalculator.Simulate
                 countGreat = (int)(totalResultCount - countGood - countMeh - countMiss);
             }
 
+            int countSliders = beatmap.HitObjects.Count(x => x is Slider);
+
+            int smallTickHit;
+            int largeTickHit;
+            int sliderTailHit;
+
+            if (ParsedMods.Any(m => m is OsuModClassic))
+            {
+                smallTickHit = countSliders - sliderTailMisses;
+                largeTickHit = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderHeadCircle or SliderTick or SliderRepeat)) - largeTickMisses;
+                sliderTailHit = 0;
+            }
+            else
+            {
+                smallTickHit = 0;
+                largeTickHit = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat)) - largeTickMisses;
+                sliderTailHit = countSliders - sliderTailMisses;
+            }
+
             return new Dictionary<HitResult, int>
             {
                 { HitResult.Great, countGreat },
                 { HitResult.Ok, countGood ?? 0 },
                 { HitResult.Meh, countMeh ?? 0 },
-                { HitResult.LargeTickHit, beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat)) - largeTickMisses },
+                { HitResult.SmallTickHit, smallTickHit },
+                { HitResult.LargeTickHit, largeTickHit },
                 { HitResult.LargeTickMiss, largeTickMisses },
-                { HitResult.SliderTailHit, beatmap.HitObjects.Count(x => x is Slider) - sliderTailMisses },
+                { HitResult.SliderTailHit, sliderTailHit },
                 { HitResult.Miss, countMiss }
             };
         }
@@ -143,13 +164,21 @@ namespace PerformanceCalculator.Simulate
 
             if (Lazer)
             {
-                var countSliders = beatmap.HitObjects.Count(x => x is Slider);
-                var countSliderTailHit = statistics[HitResult.SliderTailHit];
-                var countLargeTicks = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat));
-                var countLargeTickHit = statistics[HitResult.LargeTickHit];
+                numerator += 30 * statistics[HitResult.LargeTickHit];
+                int countSliders = beatmap.HitObjects.Count(x => x is Slider);
 
-                numerator += 150 * countSliderTailHit + 30 * countLargeTickHit;
-                denominator += 150 * countSliders + 30 * countLargeTicks;
+                if (ParsedMods.Any(m => m is OsuModClassic))
+                {
+                    numerator += 10 * statistics[HitResult.SmallTickHit];
+                    int maxLargeTickHit = beatmap.HitObjects.Sum(h => h.NestedHitObjects.Count(n => n is SliderHeadCircle or SliderTick or SliderRepeat));
+                    denominator += 30 * maxLargeTickHit + 10 * countSliders;
+                }
+                else
+                {
+                    numerator += 150 * statistics[HitResult.SliderTailHit];
+                    int maxLargeTickHit = beatmap.HitObjects.Sum(h => h.NestedHitObjects.Count(n => n is SliderTick or SliderRepeat));
+                    denominator += 150 * countSliders + 30 * maxLargeTickHit;
+                }
             }
 
             return (double)numerator / denominator;

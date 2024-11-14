@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using McMaster.Extensions.CommandLineUtils;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 
@@ -61,13 +62,15 @@ namespace PerformanceCalculator.Simulate
         [UsedImplicitly]
         public virtual double PercentCombo { get; }
 
+        protected Mod[] ParsedMods;
+
         public override void Execute()
         {
             var ruleset = Ruleset;
 
+            ParsedMods = ParseMods(ruleset, Mods, ModOptions);
             var workingBeatmap = ProcessorWorkingBeatmap.FromFileOrId(Beatmap);
-            var mods = ParseMods(ruleset, Mods, ModOptions);
-            var beatmap = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, mods);
+            var beatmap = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, ParsedMods);
 
             var beatmapMaxCombo = beatmap.GetMaxCombo();
             var statistics = GenerateHitResults(Accuracy / 100, beatmap, Misses, Mehs, Goods);
@@ -76,11 +79,11 @@ namespace PerformanceCalculator.Simulate
                 Accuracy = GetAccuracy(beatmap, statistics),
                 MaxCombo = Combo ?? (int)Math.Round(PercentCombo / 100 * beatmapMaxCombo),
                 Statistics = statistics,
-                Mods = mods
+                Mods = ParsedMods
             };
 
             var difficultyCalculator = ruleset.CreateDifficultyCalculator(workingBeatmap);
-            var difficultyAttributes = difficultyCalculator.Calculate(mods);
+            var difficultyAttributes = difficultyCalculator.Calculate(ParsedMods);
             var performanceCalculator = ruleset.CreatePerformanceCalculator();
             var performanceAttributes = performanceCalculator?.Calculate(scoreInfo, difficultyAttributes);
 
