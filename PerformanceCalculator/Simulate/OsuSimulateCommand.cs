@@ -122,21 +122,26 @@ namespace PerformanceCalculator.Simulate
 
             int countSliders = beatmap.HitObjects.Count(x => x is Slider);
 
-            int smallTickHit;
-            int largeTickHit;
-            int sliderTailHit;
+            int smallTickHit = 0;
+            int largeTickHit = 0;
+            int sliderTailHit = 0;
 
-            if (ParsedMods.Any(m => m is OsuModClassic))
+            if (Lazer)
             {
-                smallTickHit = countSliders - sliderTailMisses;
-                largeTickHit = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderHeadCircle or SliderTick or SliderRepeat)) - largeTickMisses;
-                sliderTailHit = 0;
-            }
-            else
-            {
-                smallTickHit = 0;
-                largeTickHit = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat)) - largeTickMisses;
-                sliderTailHit = countSliders - sliderTailMisses;
+                bool? noSliderHeadAccuracy = ParsedMods.Where(m => m is OsuModClassic)
+                    .Select(m => (m as OsuModClassic).NoSliderHeadAccuracy.Value)
+                    .FirstOrDefault();
+
+                if (noSliderHeadAccuracy ?? false)
+                {
+                    smallTickHit = countSliders - sliderTailMisses;
+                    largeTickHit = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderHeadCircle or SliderTick or SliderRepeat)) - largeTickMisses;
+                }
+                else
+                {
+                    largeTickHit = beatmap.HitObjects.Sum(obj => obj.NestedHitObjects.Count(x => x is SliderTick or SliderRepeat)) - largeTickMisses;
+                    sliderTailHit = countSliders - sliderTailMisses;
+                }
             }
 
             return new Dictionary<HitResult, int>
@@ -167,7 +172,11 @@ namespace PerformanceCalculator.Simulate
                 numerator += 30 * statistics[HitResult.LargeTickHit];
                 int countSliders = beatmap.HitObjects.Count(x => x is Slider);
 
-                if (ParsedMods.Any(m => m is OsuModClassic))
+                bool? noSliderHeadAccuracy = ParsedMods.Where(m => m is OsuModClassic)
+                    .Select(m => (m as OsuModClassic).NoSliderHeadAccuracy.Value)
+                    .FirstOrDefault();
+
+                if (noSliderHeadAccuracy ?? false)
                 {
                     numerator += 10 * statistics[HitResult.SmallTickHit];
                     int maxLargeTickHit = beatmap.HitObjects.Sum(h => h.NestedHitObjects.Count(n => n is SliderHeadCircle or SliderTick or SliderRepeat));
